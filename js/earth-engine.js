@@ -63,8 +63,6 @@ const EarthEngineManager = {
                             null,
                             null,
                             () => {
-                                // Set the project for API calls
-                                ee.data.setCloudApiEnabled(true);
                                 this.initialized = true;
                                 console.log('Earth Engine initialized successfully');
                                 resolve();
@@ -91,7 +89,6 @@ const EarthEngineManager = {
                                     null,
                                     null,
                                     () => {
-                                        ee.data.setCloudApiEnabled(true);
                                         this.initialized = true;
                                         console.log('Earth Engine initialized via popup');
                                         resolve();
