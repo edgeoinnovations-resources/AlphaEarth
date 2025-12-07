@@ -128,13 +128,15 @@ const EarthEngineManager = {
 
         return new Promise((resolve, reject) => {
             try {
-                // Load the dataset
-                const dataset = ee.ImageCollection(this.DATASET_ID);
+                console.log('Loading embeddings for year:', year, 'bands:', bands);
 
-                // Filter by year using the 'year' property
-                const image = dataset
-                    .filter(ee.Filter.eq('year', year))
-                    .first()
+                // Filter by date range and mosaic all tiles for the year
+                const startDate = year + '-01-01';
+                const endDate = (year + 1) + '-01-01';
+
+                const image = ee.ImageCollection(this.DATASET_ID)
+                    .filterDate(startDate, endDate)
+                    .mosaic()
                     .select(bands);
 
                 // Visualization parameters
@@ -197,17 +199,17 @@ const EarthEngineManager = {
 
         return new Promise((resolve, reject) => {
             try {
-                const dataset = ee.ImageCollection(this.DATASET_ID);
                 const bandNames = this.getAllBandNames();
 
-                const image1 = dataset
-                    .filter(ee.Filter.eq('year', year1))
-                    .first()
+                // Get images for both years using filterDate and mosaic
+                const image1 = ee.ImageCollection(this.DATASET_ID)
+                    .filterDate(year1 + '-01-01', (year1 + 1) + '-01-01')
+                    .mosaic()
                     .select(bandNames);
 
-                const image2 = dataset
-                    .filter(ee.Filter.eq('year', year2))
-                    .first()
+                const image2 = ee.ImageCollection(this.DATASET_ID)
+                    .filterDate(year2 + '-01-01', (year2 + 1) + '-01-01')
+                    .mosaic()
                     .select(bandNames);
 
                 // Calculate dot product (similarity)
