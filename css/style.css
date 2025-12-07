@@ -678,3 +678,117 @@ body {
     background: #e8f5e9;
     color: #2e7d32;
 }
+
+/* Explainer Box */
+.explainer-box {
+    position: fixed;
+    bottom: 60px;
+    left: 10px;
+    width: 380px;
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 1100;
+    color: white;
+    animation: slideInUp 0.3s ease-out;
+}
+
+.explainer-box.hidden {
+    display: none;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.explainer-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    gap: 10px;
+}
+
+.explainer-icon {
+    font-size: 20px;
+}
+
+.explainer-header span:not(.explainer-icon) {
+    flex-grow: 1;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.explainer-close {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.explainer-close:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+#explainer-text {
+    padding: 14px 16px;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+/* Show Explainer Button */
+.show-explainer-btn {
+    position: fixed;
+    bottom: 60px;
+    left: 10px;
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    z-index: 1100;
+    transition: all 0.2s;
+}
+
+.show-explainer-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.show-explainer-btn.hidden {
+    display: none;
+}
+
+/* Responsive adjustments for explainer */
+@media (max-width: 480px) {
+    .explainer-box {
+        width: calc(100% - 20px);
+        left: 10px;
+        right: 10px;
+    }
+
+    .show-explainer-btn {
+        left: 10px;
+    }
+}

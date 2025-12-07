@@ -33,7 +33,10 @@ const CaseStudiesUI = {
             detailContent: document.getElementById('detail-content'),
             btnExplore: document.getElementById('btn-explore'),
             btnBack: document.getElementById('btn-back'),
-            modeIndicator: document.getElementById('mode-indicator')
+            modeIndicator: document.getElementById('mode-indicator'),
+            explainerBox: document.getElementById('explainer-box'),
+            explainerText: document.getElementById('explainer-text'),
+            showExplainerBtn: document.getElementById('show-explainer-btn')
         };
     },
 
@@ -230,6 +233,9 @@ const CaseStudiesUI = {
             UIControls.elements.layerName.value = layerName;
             UIControls.elements.embeddingsLayerName.textContent = layerName;
 
+            // Display the explainer for this scenario
+            this.displayExplainer(scenario);
+
         } catch (error) {
             console.error('Error exploring scenario:', error);
             alert('Error loading scenario: ' + error.message);
@@ -301,6 +307,63 @@ const CaseStudiesUI = {
         }
         if (this.elements.toggle) {
             this.elements.toggle.classList.toggle('collapsed');
+        }
+    },
+
+    /**
+     * Show explainer box with current scenario's explanation
+     */
+    showExplainer() {
+        if (!this.currentScenario || !this.currentScenario.explainer) return;
+
+        if (this.elements.explainerText) {
+            this.elements.explainerText.textContent = this.currentScenario.explainer;
+        }
+        if (this.elements.explainerBox) {
+            this.elements.explainerBox.classList.remove('hidden');
+        }
+        if (this.elements.showExplainerBtn) {
+            this.elements.showExplainerBtn.classList.add('hidden');
+        }
+    },
+
+    /**
+     * Hide explainer box and show the button
+     */
+    hideExplainer() {
+        if (this.elements.explainerBox) {
+            this.elements.explainerBox.classList.add('hidden');
+        }
+        if (this.elements.showExplainerBtn && this.currentScenario && this.currentScenario.explainer) {
+            this.elements.showExplainerBtn.classList.remove('hidden');
+        }
+    },
+
+    /**
+     * Display explainer when a scenario is explored
+     * @param {Object} scenario - The scenario being explored
+     */
+    displayExplainer(scenario) {
+        if (!scenario || !scenario.explainer) {
+            // Hide both if no explainer
+            if (this.elements.explainerBox) {
+                this.elements.explainerBox.classList.add('hidden');
+            }
+            if (this.elements.showExplainerBtn) {
+                this.elements.showExplainerBtn.classList.add('hidden');
+            }
+            return;
+        }
+
+        // Set the text and show the explainer box
+        if (this.elements.explainerText) {
+            this.elements.explainerText.textContent = scenario.explainer;
+        }
+        if (this.elements.explainerBox) {
+            this.elements.explainerBox.classList.remove('hidden');
+        }
+        if (this.elements.showExplainerBtn) {
+            this.elements.showExplainerBtn.classList.add('hidden');
         }
     }
 };
