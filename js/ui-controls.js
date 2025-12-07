@@ -71,13 +71,13 @@ const UIControls = {
     },
 
     /**
-     * Populate band selector dropdowns with A01-A64
+     * Populate band selector dropdowns with A00-A63
      */
     populateBandSelectors() {
         const bands = EarthEngineManager.getAllBandNames();
 
         // Default selections
-        const defaults = { red: 'A01', green: 'A16', blue: 'A09' };
+        const defaults = { red: 'A00', green: 'A15', blue: 'A08' };
 
         [this.elements.bandRed, this.elements.bandGreen, this.elements.bandBlue].forEach((select, index) => {
             select.innerHTML = '';
@@ -253,9 +253,9 @@ const UIControls = {
      */
     onReset() {
         this.elements.yearSlider.value = 2020;
-        this.elements.bandRed.value = 'A01';
-        this.elements.bandGreen.value = 'A16';
-        this.elements.bandBlue.value = 'A09';
+        this.elements.bandRed.value = 'A00';
+        this.elements.bandGreen.value = 'A15';
+        this.elements.bandBlue.value = 'A08';
         this.elements.minSlider.value = -0.3;
         this.elements.maxSlider.value = 0.3;
         this.elements.terrainSlider.value = 2;

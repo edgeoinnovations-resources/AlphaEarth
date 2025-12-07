@@ -176,11 +176,11 @@ const EarthEngineManager = {
 
     /**
      * Get all band names
-     * @returns {string[]} Array of band names A01-A64
+     * @returns {string[]} Array of band names A00-A63
      */
     getAllBandNames() {
         const bands = [];
-        for (let i = 1; i <= 64; i++) {
+        for (let i = 0; i <= 63; i++) {
             bands.push(`A${i.toString().padStart(2, '0')}`);
         }
         return bands;
