@@ -241,6 +241,65 @@ const EarthEngineManager = {
      */
     isReady() {
         return this.initialized;
+    },
+
+    /**
+     * Get clustering visualization using k-means on embeddings
+     * @param {number} year - Year to analyze
+     * @param {string[]} bands - Bands to use for clustering
+     * @param {number} numClusters - Number of clusters (default 8)
+     * @returns {Promise<string>} Tile URL for clustering layer
+     */
+    async getClusteringUrl(year, bands, numClusters = 8) {
+        if (!this.initialized) {
+            throw new Error('Earth Engine not initialized');
+        }
+
+        return new Promise((resolve, reject) => {
+            try {
+                // Get image for the year
+                const startDate = year + '-01-01';
+                const endDate = (year + 1) + '-01-01';
+
+                const image = ee.ImageCollection(this.DATASET_ID)
+                    .filterDate(startDate, endDate)
+                    .mosaic()
+                    .select(bands);
+
+                // Sample the image for training
+                const training = image.sample({
+                    region: ee.Geometry.Rectangle([-180, -60, 180, 75]),
+                    scale: 10000,
+                    numPixels: 5000
+                });
+
+                // Train k-means clusterer
+                const clusterer = ee.Clusterer.wekaKMeans(numClusters).train(training);
+
+                // Apply clusterer to image
+                const clustered = image.cluster(clusterer);
+
+                // Visualization with distinct colors
+                const visParams = {
+                    min: 0,
+                    max: numClusters - 1,
+                    palette: [
+                        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
+                        '#9467bd', '#8c564b', '#e377c2', '#7f7f7f'
+                    ].slice(0, numClusters)
+                };
+
+                clustered.getMap(visParams, (mapInfo, error) => {
+                    if (error) {
+                        reject(new Error('Failed to generate clustering: ' + error));
+                    } else {
+                        resolve(mapInfo.urlFormat);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 };
 

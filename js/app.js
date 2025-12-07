@@ -10,6 +10,8 @@ const App = {
     map: null,
     embeddingsLayerId: 'embeddings-layer',
     labelsLayerId: 'labels-layer',
+    changeLayerId: 'change-layer',
+    clusteringLayerId: 'clustering-layer',
 
     /**
      * Initialize the application
@@ -19,6 +21,11 @@ const App = {
 
         // Initialize UI controls
         UIControls.init();
+
+        // Initialize Case Studies UI
+        if (typeof CaseStudiesUI !== 'undefined') {
+            CaseStudiesUI.init();
+        }
 
         // Initialize MapLibre map with globe projection
         this.initMap();
@@ -308,6 +315,137 @@ const App = {
             bearing: 0,
             duration: 1500
         });
+    },
+
+    /**
+     * Add change detection layer comparing two years
+     * @param {number} year1 - First year
+     * @param {number} year2 - Second year
+     */
+    async addChangeDetectionLayer(year1, year2) {
+        try {
+            console.log(`Loading change detection: ${year1} vs ${year2}`);
+
+            // Get change detection tile URL
+            const tileUrl = await EarthEngineManager.getChangeDetectionUrl(year1, year2);
+
+            // Remove existing change layer if present
+            if (this.map.getLayer(this.changeLayerId)) {
+                this.map.removeLayer(this.changeLayerId);
+            }
+            if (this.map.getSource('change-detection')) {
+                this.map.removeSource('change-detection');
+            }
+
+            // Remove embeddings layer to show change layer
+            if (this.map.getLayer(this.embeddingsLayerId)) {
+                this.map.removeLayer(this.embeddingsLayerId);
+            }
+            if (this.map.getSource('embeddings')) {
+                this.map.removeSource('embeddings');
+            }
+
+            // Add new source
+            this.map.addSource('change-detection', {
+                type: 'raster',
+                tiles: [tileUrl],
+                tileSize: 256
+            });
+
+            // Add layer
+            const beforeLayer = this.map.getLayer(this.labelsLayerId) ? this.labelsLayerId : undefined;
+
+            this.map.addLayer({
+                id: this.changeLayerId,
+                type: 'raster',
+                source: 'change-detection',
+                paint: {
+                    'raster-opacity': 1
+                }
+            }, beforeLayer);
+
+            console.log(`Loaded change detection: ${year1} vs ${year2}`);
+
+        } catch (error) {
+            console.error('Error loading change detection:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Add clustering layer
+     * @param {number} year - Year to analyze
+     * @param {string[]} bands - Bands to use for clustering
+     */
+    async addClusteringLayer(year, bands) {
+        try {
+            console.log(`Loading clustering for year ${year} with bands:`, bands);
+
+            // Get clustering tile URL
+            const tileUrl = await EarthEngineManager.getClusteringUrl(year, bands);
+
+            // Remove existing clustering layer if present
+            if (this.map.getLayer(this.clusteringLayerId)) {
+                this.map.removeLayer(this.clusteringLayerId);
+            }
+            if (this.map.getSource('clustering')) {
+                this.map.removeSource('clustering');
+            }
+
+            // Remove embeddings layer to show clustering layer
+            if (this.map.getLayer(this.embeddingsLayerId)) {
+                this.map.removeLayer(this.embeddingsLayerId);
+            }
+            if (this.map.getSource('embeddings')) {
+                this.map.removeSource('embeddings');
+            }
+
+            // Add new source
+            this.map.addSource('clustering', {
+                type: 'raster',
+                tiles: [tileUrl],
+                tileSize: 256
+            });
+
+            // Add layer
+            const beforeLayer = this.map.getLayer(this.labelsLayerId) ? this.labelsLayerId : undefined;
+
+            this.map.addLayer({
+                id: this.clusteringLayerId,
+                type: 'raster',
+                source: 'clustering',
+                paint: {
+                    'raster-opacity': 1
+                }
+            }, beforeLayer);
+
+            console.log(`Loaded clustering for year ${year}`);
+
+        } catch (error) {
+            console.error('Error loading clustering:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Remove additional layers (change detection, clustering)
+     */
+    removeAdditionalLayers() {
+        // Remove change layer
+        if (this.map.getLayer(this.changeLayerId)) {
+            this.map.removeLayer(this.changeLayerId);
+        }
+        if (this.map.getSource('change-detection')) {
+            this.map.removeSource('change-detection');
+        }
+
+        // Remove clustering layer
+        if (this.map.getLayer(this.clusteringLayerId)) {
+            this.map.removeLayer(this.clusteringLayerId);
+        }
+        if (this.map.getSource('clustering')) {
+            this.map.removeSource('clustering');
+        }
     }
 };
 

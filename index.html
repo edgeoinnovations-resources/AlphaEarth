@@ -118,6 +118,32 @@
                 </div>
             </div>
         </div>
+
+        <!-- Case Studies Panel Section -->
+        <div class="panel-section" id="case-studies-panel">
+            <div class="panel-header">
+                <span class="panel-icon">📚</span>
+                <span>Case Studies</span>
+                <span id="mode-indicator" class="mode-indicator"></span>
+                <button class="panel-toggle" id="case-studies-toggle">&#8963;</button>
+            </div>
+            <div class="case-studies-controls" id="case-studies-content">
+                <div class="control-row">
+                    <select id="category-filter" class="category-select"></select>
+                </div>
+                <div class="control-row">
+                    <input type="text" id="scenario-search" placeholder="Search scenarios..." class="search-input">
+                </div>
+                <div id="scenario-list" class="scenario-list"></div>
+                <div id="scenario-detail" class="scenario-detail" style="display: none;">
+                    <div id="detail-content"></div>
+                    <div class="detail-actions">
+                        <button id="btn-back" class="btn btn-secondary">Back</button>
+                        <button id="btn-explore" class="btn btn-primary">Explore</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Authentication Modal -->
@@ -151,6 +177,8 @@
     <!-- Scripts -->
     <script src="js/earth-engine.js"></script>
     <script src="js/ui-controls.js"></script>
+    <script src="js/case-studies.js"></script>
+    <script src="js/case-studies-ui.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
