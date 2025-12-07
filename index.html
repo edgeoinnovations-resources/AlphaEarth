@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaEarth Satellite Embeddings Viewer</title>
+
+    <!-- MapLibre GL JS for 3D Globe -->
+    <script src="https://unpkg.com/maplibre-gl@4.1.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@4.1.0/dist/maplibre-gl.css" rel="stylesheet" />
+
+    <!-- Google Earth Engine API -->
+    <script src="https://ajax.googleapis.com/ajax/libs/earthengine/0.1.384/earthengine-api.min.js"></script>
+
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Control Panel (matching the screenshot UI) -->
+    <div id="control-panel">
+        <div class="panel-section">
+            <div class="panel-header">
+                <span class="panel-icon">&#9674;</span>
+                <span>Layers</span>
+                <button class="panel-toggle" id="layers-toggle">&#8963;</button>
+            </div>
+            <div class="layer-controls" id="layers-content">
+                <label class="layer-item">
+                    <input type="checkbox" id="toggle-all" checked>
+                    <span>All layers on/off</span>
+                </label>
+                <label class="layer-item">
+                    <input type="checkbox" id="layer-background" checked>
+                    <span>background</span>
+                    <input type="range" class="opacity-slider" id="opacity-background" min="0" max="100" value="100">
+                </label>
+                <label class="layer-item">
+                    <input type="checkbox" id="layer-imagery" checked>
+                    <span>USGS.Imagery</span>
+                    <input type="range" class="opacity-slider" id="opacity-imagery" min="0" max="100" value="100">
+                </label>
+                <label class="layer-item">
+                    <input type="checkbox" id="layer-embeddings" checked>
+                    <span id="embeddings-layer-name">Embeddings 2020</span>
+                    <input type="range" class="opacity-slider" id="opacity-embeddings" min="0" max="100" value="100">
+                </label>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="panel-header">
+                <span class="panel-icon">&#9881;</span>
+                <span>AlphaEarth</span>
+                <button class="panel-toggle" id="alphaearth-toggle">&#8963;</button>
+            </div>
+            <div class="alphaearth-controls" id="alphaearth-content">
+                <div class="control-row">
+                    <label>Year:</label>
+                    <input type="range" id="year-slider" min="2017" max="2024" value="2020" step="1">
+                    <span id="year-value">2020</span>
+                </div>
+
+                <div class="control-row band-selectors">
+                    <label>Red:</label>
+                    <select id="band-red"></select>
+                    <label>Green:</label>
+                    <select id="band-green"></select>
+                    <label>Blue:</label>
+                    <select id="band-blue"></select>
+                </div>
+
+                <div class="control-row">
+                    <label>Min:</label>
+                    <input type="range" id="min-slider" min="-1" max="0" value="-0.3" step="0.05">
+                    <label>Max:</label>
+                    <input type="range" id="max-slider" min="0" max="1" value="0.3" step="0.05">
+                </div>
+                <div class="control-row">
+                    <span id="minmax-value">-0.30 to 0.30</span>
+                </div>
+
+                <div class="control-row">
+                    <label>Terrain exaggeration:</label>
+                    <input type="range" id="terrain-slider" min="0" max="5" value="2" step="0.1">
+                    <span id="terrain-value">2.00</span>
+                </div>
+
+                <div class="control-row checkbox-row">
+                    <label>
+                        <input type="checkbox" id="labels-toggle" checked>
+                        Add labels on top
+                    </label>
+                </div>
+
+                <div class="control-row">
+                    <label>Layer Name:</label>
+                    <input type="text" id="layer-name" value="Embeddings 2020">
+                </div>
+
+                <div class="button-row">
+                    <button id="btn-apply" class="btn btn-primary">Apply</button>
+                    <button id="btn-reset" class="btn btn-secondary">Reset</button>
+                    <button id="btn-close" class="btn btn-danger">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <h2>Google Earth Engine Authentication</h2>
+            <p>To view AlphaEarth satellite embeddings, you need to authenticate with Google Earth Engine.</p>
+            <p><strong>Prerequisites:</strong></p>
+            <ul>
+                <li>A Google account</li>
+                <li>Earth Engine access (sign up at <a href="https://earthengine.google.com" target="_blank">earthengine.google.com</a>)</li>
+            </ul>
+            <button id="btn-authenticate" class="btn btn-primary btn-large">Authenticate with Google</button>
+            <p class="note">Note: Authentication opens a popup window. Please allow popups for this site.</p>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="hidden">
+        <div class="spinner"></div>
+        <p>Loading AlphaEarth embeddings...</p>
+    </div>
+
+    <!-- Attribution -->
+    <div id="attribution">
+        <span>AlphaEarth dataset by Google & Google DeepMind</span>
+        <span class="separator">|</span>
+        <a href="https://github.com/edgeoinnovations-resources/AlphaEarth" target="_blank">GitHub</a>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/earth-engine.js"></script>
+    <script src="js/ui-controls.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

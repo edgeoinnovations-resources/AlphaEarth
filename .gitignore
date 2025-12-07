@@ -140,7 +140,9 @@ cython_debug/
 Thumbs.db
 
 # Project specific
+# Ignore generated HTML files but keep index.html and examples
 *.html
+!index.html
 !examples/*.html
 credentials.json
 token.json

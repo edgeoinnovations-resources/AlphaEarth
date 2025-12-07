@@ -2,8 +2,13 @@
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-blue)](https://edgeoinnovations-resources.github.io/AlphaEarth/)
 
-A Python toolkit for visualizing Google DeepMind's AlphaEarth satellite embeddings using LeafMap and Google Earth Engine.
+Interactive visualization tools for Google DeepMind's AlphaEarth satellite embeddings using LeafMap, MapLibre GL JS, and Google Earth Engine.
+
+## Live Demo
+
+**Try it now:** [https://edgeoinnovations-resources.github.io/AlphaEarth/](https://edgeoinnovations-resources.github.io/AlphaEarth/)
 
 ## About AlphaEarth
 
@@ -16,12 +21,44 @@ AlphaEarth is Google DeepMind's foundation model for satellite imagery that prod
 
 ## Features
 
-- **3D Globe Visualization**: Interactive 3D globe with AlphaEarth GUI controls
+- **3D Globe Visualization**: Interactive 3D globe with full rotation, zoom, and tilt
+- **Year Selection**: View embeddings from any year between 2017-2024
+- **Band Combinations**: Choose any 3 of 64 embedding bands for RGB visualization
+- **Terrain Exaggeration**: Adjust 3D terrain height for topographic analysis
 - **Change Detection**: Calculate similarity between years using dot product analysis
-- **Band Exploration**: Visualize custom combinations of the 64 embedding bands
-- **Year Comparison**: Side-by-side comparison of any two years (2017-2024)
+- **Layer Controls**: Toggle layers and adjust opacity
 
-## Installation
+## Web Visualization
+
+The web-based viewer runs entirely in your browser and connects directly to Google Earth Engine.
+
+### Quick Start (Web)
+
+1. Visit [the live demo](https://edgeoinnovations-resources.github.io/AlphaEarth/)
+2. Click "Authenticate with Google"
+3. Log in with a Google account that has Earth Engine access
+4. Use the control panel to adjust visualization settings
+5. Click "Apply" to load embeddings
+
+### Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/edgeoinnovations-resources/AlphaEarth.git
+cd AlphaEarth
+
+# Serve locally (Python 3)
+python -m http.server 8000
+
+# Open in browser
+open http://localhost:8000
+```
+
+## Python Toolkit
+
+For programmatic access and Jupyter notebook integration, use the Python toolkit.
+
+### Installation
 
 ```bash
 # Clone the repository
@@ -32,17 +69,7 @@ cd AlphaEarth
 pip install -r requirements.txt
 ```
 
-## Prerequisites
-
-### Google Earth Engine Account
-
-You need a Google Earth Engine account to access the AlphaEarth dataset:
-
-1. Sign up at [Google Earth Engine](https://earthengine.google.com/)
-2. Create a Google Cloud project with Earth Engine API enabled
-3. Authenticate using `ee.Authenticate()` in Python
-
-## Quick Start
+### Quick Start (Python)
 
 ```python
 import ee
@@ -59,19 +86,9 @@ m.add_alphaearth_gui()
 m
 ```
 
-## Usage Examples
+### Python Examples
 
-### Basic Globe with Interactive GUI
-
-```python
-from alphaearth_viz import create_globe_map, add_alphaearth_gui
-
-m = create_globe_map()
-add_alphaearth_gui(m)
-m
-```
-
-### Compare Two Years
+#### Compare Two Years
 
 ```python
 from alphaearth_viz import compare_years
@@ -81,7 +98,7 @@ m = compare_years(lon=-122.4, lat=37.8, year1=2017, year2=2024)
 m
 ```
 
-### Change Detection Analysis
+#### Change Detection Analysis
 
 ```python
 from alphaearth_viz import analyze_location
@@ -91,7 +108,7 @@ m = analyze_location(lon=-122.4, lat=37.8, year1=2017, year2=2024)
 m
 ```
 
-### Explore Custom Band Combinations
+#### Explore Custom Band Combinations
 
 ```python
 from alphaearth_viz import explore_bands
@@ -101,15 +118,28 @@ m = explore_bands(lon=-122.4, lat=37.8, year=2024, band_combo=[1, 16, 9])
 m
 ```
 
+## Prerequisites
+
+### Google Earth Engine Account
+
+You need a Google Earth Engine account to access the AlphaEarth dataset:
+
+1. Sign up at [Google Earth Engine](https://earthengine.google.com/)
+2. Create a Google Cloud project with Earth Engine API enabled
+3. For Python: Authenticate using `ee.Authenticate()`
+4. For Web: Allow popups and authenticate via the browser
+
 ## Project Structure
 
 ```
 AlphaEarth/
-├── README.md
-├── requirements.txt
-├── setup.py
-├── .gitignore
-├── LICENSE
+├── index.html              # Web visualization entry point
+├── css/
+│   └── style.css           # UI styles
+├── js/
+│   ├── app.js              # Main application
+│   ├── earth-engine.js     # Earth Engine integration
+│   └── ui-controls.js      # Control panel
 ├── notebooks/
 │   ├── 01_quickstart.ipynb
 │   ├── 02_change_detection.ipynb
@@ -119,15 +149,15 @@ AlphaEarth/
 │       ├── __init__.py
 │       ├── core.py
 │       └── utils.py
-└── examples/
-    ├── basic_globe.py
-    ├── compare_years.py
-    └── change_detection.py
+├── examples/
+│   ├── basic_globe.py
+│   ├── compare_years.py
+│   └── change_detection.py
+├── requirements.txt
+├── setup.py
+├── LICENSE
+└── README.md
 ```
-
-## Screenshots
-
-*Coming soon: Interactive globe visualization and change detection examples*
 
 ## Official Resources
 
@@ -136,6 +166,13 @@ AlphaEarth/
 - **Research Paper**: [arXiv:2507.22291](https://arxiv.org/abs/2507.22291)
 - **Tutorials**: [Satellite Embedding Introduction](https://developers.google.com/earth-engine/tutorials/community/satellite-embedding-01-introduction)
 - **LeafMap Documentation**: [LeafMap AlphaEarth](https://leafmap.org/maplibre/AlphaEarth/)
+
+## Built With
+
+- [MapLibre GL JS](https://maplibre.org/) - 3D map rendering for web
+- [Google Earth Engine](https://earthengine.google.com/) - Satellite data platform
+- [LeafMap](https://leafmap.org/) - Python geospatial visualization
+- [geemap](https://geemap.org/) - Earth Engine Python API
 
 ## License
 
@@ -152,3 +189,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## Support
 
 For issues and questions, please open an issue on the [GitHub repository](https://github.com/edgeoinnovations-resources/AlphaEarth/issues).
+
+---
+
+**Created by [EdGeoInnovations](https://github.com/edgeoinnovations-resources)**
