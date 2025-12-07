@@ -20,19 +20,38 @@ const EarthEngineManager = {
     PROJECT_ID: 'uae-imagery',
 
     /**
+     * Check if Earth Engine API is loaded
+     * @returns {boolean}
+     */
+    isApiLoaded() {
+        return typeof ee !== 'undefined' && ee !== null && typeof ee.data !== 'undefined';
+    },
+
+    /**
      * Initialize Earth Engine with OAuth authentication
      * @returns {Promise<void>}
      */
     async initialize() {
         return new Promise((resolve, reject) => {
-            // Check if EE API is loaded
-            if (typeof ee === 'undefined') {
-                reject(new Error('Earth Engine API not loaded. Please check your internet connection.'));
+            // Check if there was a script load error
+            if (window.eeLoadError) {
+                reject(new Error('Earth Engine API failed to load. The script could not be downloaded. Please check your internet connection and try refreshing the page.'));
                 return;
             }
 
+            // Check if EE API is loaded
+            if (!this.isApiLoaded()) {
+                console.error('Earth Engine API check failed:');
+                console.error('  typeof ee:', typeof ee);
+                console.error('  ee value:', typeof ee !== 'undefined' ? ee : 'undefined');
+                reject(new Error('Earth Engine API not loaded. Please refresh the page and try again.'));
+                return;
+            }
+
+            console.log('Earth Engine API detected successfully');
             console.log('Starting Earth Engine authentication...');
             console.log('Using OAuth Client ID:', this.OAUTH_CLIENT_ID);
+            console.log('Using Project ID:', this.PROJECT_ID);
 
             // Use OAuth authentication with client ID
             try {

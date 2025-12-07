@@ -10,10 +10,21 @@
     <link href="https://unpkg.com/maplibre-gl@4.1.0/dist/maplibre-gl.css" rel="stylesheet" />
 
     <!-- Google Earth Engine API -->
-    <script src="https://ajax.googleapis.com/ajax/libs/earthengine/0.1.384/earthengine-api.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@google/earthengine@1.2.0/build/ee_api_js.js"></script>
 
     <!-- Custom styles -->
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- Script load error handling -->
+    <script>
+        window.eeLoadError = false;
+        window.addEventListener('error', function(e) {
+            if (e.target.tagName === 'SCRIPT' && e.target.src.includes('earthengine')) {
+                window.eeLoadError = true;
+                console.error('Failed to load Earth Engine API from:', e.target.src);
+            }
+        }, true);
+    </script>
 </head>
 <body>
     <!-- Map Container -->
