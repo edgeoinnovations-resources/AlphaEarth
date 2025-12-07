@@ -13,6 +13,12 @@ const EarthEngineManager = {
     // Earth Engine dataset ID
     DATASET_ID: 'GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL',
 
+    // OAuth Client ID for Google Cloud Project
+    OAUTH_CLIENT_ID: '37656881675-ldkap3udu8p3b6f34u0i5a9s2sj19l5f.apps.googleusercontent.com',
+
+    // Google Cloud Project ID
+    PROJECT_ID: 'uae-imagery',
+
     /**
      * Initialize Earth Engine with OAuth authentication
      * @returns {Promise<void>}
@@ -26,16 +32,20 @@ const EarthEngineManager = {
             }
 
             console.log('Starting Earth Engine authentication...');
+            console.log('Using OAuth Client ID:', this.OAUTH_CLIENT_ID);
 
-            // Try popup authentication directly
+            // Use OAuth authentication with client ID
             try {
-                ee.data.authenticateViaPopup(
+                ee.data.authenticateViaOauth(
+                    this.OAUTH_CLIENT_ID,
                     () => {
-                        console.log('OAuth popup completed, initializing...');
+                        console.log('OAuth authentication completed, initializing with project:', this.PROJECT_ID);
                         ee.initialize(
                             null,
                             null,
                             () => {
+                                // Set the project for API calls
+                                ee.data.setCloudApiEnabled(true);
                                 this.initialized = true;
                                 console.log('Earth Engine initialized successfully');
                                 resolve();
@@ -43,12 +53,41 @@ const EarthEngineManager = {
                             (error) => {
                                 console.error('EE initialization failed:', error);
                                 reject(new Error('Failed to initialize Earth Engine: ' + error));
-                            }
+                            },
+                            null,
+                            this.PROJECT_ID
                         );
                     },
                     (error) => {
-                        console.error('OAuth popup failed:', error);
+                        console.error('OAuth authentication failed:', error);
                         reject(new Error('Authentication failed. Please ensure you have Earth Engine access and allow popups.'));
+                    },
+                    null,
+                    () => {
+                        // Fallback to popup if needed
+                        console.log('Trying popup authentication...');
+                        ee.data.authenticateViaPopup(
+                            () => {
+                                ee.initialize(
+                                    null,
+                                    null,
+                                    () => {
+                                        ee.data.setCloudApiEnabled(true);
+                                        this.initialized = true;
+                                        console.log('Earth Engine initialized via popup');
+                                        resolve();
+                                    },
+                                    (error) => {
+                                        reject(new Error('Failed to initialize: ' + error));
+                                    },
+                                    null,
+                                    this.PROJECT_ID
+                                );
+                            },
+                            (error) => {
+                                reject(new Error('Popup authentication failed: ' + error));
+                            }
+                        );
                     }
                 );
             } catch (error) {
