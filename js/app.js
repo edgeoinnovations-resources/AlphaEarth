@@ -114,9 +114,86 @@ const App = {
 
         this.map.addControl(new maplibregl.FullscreenControl(), 'top-left');
 
-        // Set up globe atmosphere and Draw Control on load
+        // Initialize Draw Control (immediately after map instantiation)
+        if (typeof MapboxDraw !== 'undefined') {
+            const draw = new MapboxDraw({
+                displayControlsDefault: false,
+                controls: {
+                    polygon: true,
+                    trash: true
+                },
+                defaultMode: 'simple_select'
+            });
+
+            // Add to map
+            this.map.addControl(draw, 'top-left');
+            this.draw = draw;
+
+            // Expose for debugging
+            window.draw = draw;
+
+            console.log('MapboxDraw control added');
+
+            // Define updateArea function for calculating change
+            const updateArea = async (e) => {
+                const data = draw.getAll();
+                if (data.features.length === 0) return;
+
+                // 1. Get Geometry
+                const geometry = data.features[0].geometry;
+
+                // 2. Check Context (Must be in Change Detection Mode)
+                const mode = App.currentMode || 'embeddings';
+
+                if (mode !== 'change') {
+                    alert("⚠️ Mode Mismatch\n\nPlease switch the visualization mode to 'Change Detection' (CHG) before measuring.\n\nUse the Case Studies panel to select a change detection scenario.");
+                    draw.deleteAll();
+                    return;
+                }
+
+                // 3. Run Calculation
+                try {
+                    console.log("Starting calculation for:", geometry);
+                    const year1 = App.changeYears?.year1 || 2017;
+                    const year2 = App.changeYears?.year2 || 2024;
+                    const threshold = 0.7;
+
+                    if (typeof EarthEngineManager === 'undefined' || typeof EarthEngineManager.calculateChangeArea !== 'function') {
+                        throw new Error("EarthEngineManager.calculateChangeArea function is missing.");
+                    }
+
+                    const areaKm2 = await EarthEngineManager.calculateChangeArea(geometry, year1, year2, threshold);
+
+                    // 4. Show Result
+                    alert(`📉 CHANGE ANALYSIS:\n\nArea of significant change: ${areaKm2} km²\n(Between ${year1} and ${year2})`);
+
+                } catch (error) {
+                    console.error("Calculation failed:", error);
+                    alert("Error: " + error.message);
+                } finally {
+                    draw.deleteAll();
+                }
+            };
+
+            // Add Event Listeners for Calculation
+            this.map.on('draw.create', (e) => {
+                console.log("Shape drawn:", e.features);
+                updateArea(e);
+            });
+            this.map.on('draw.update', (e) => {
+                console.log("Shape updated:", e.features);
+                updateArea(e);
+            });
+            this.map.on('draw.modechange', (e) => {
+                console.log("Draw mode changed to:", e.mode);
+            });
+        } else {
+            console.error("MapboxDraw library not loaded!");
+        }
+
+        // Set up globe atmosphere on load
         this.map.on('load', () => {
-            console.log('Map loaded - initializing Draw control...');
+            console.log('Map loaded');
 
             // Add atmosphere/fog effect for globe
             this.map.setFog({
@@ -126,83 +203,6 @@ const App = {
                 'space-color': 'rgb(5, 5, 15)',
                 'star-intensity': 0.6
             });
-
-            // Initialize Draw Control (after map is fully loaded)
-            if (typeof MapboxDraw !== 'undefined') {
-                const draw = new MapboxDraw({
-                    displayControlsDefault: false,
-                    controls: {
-                        polygon: true,
-                        trash: true
-                    },
-                    defaultMode: 'simple_select'
-                });
-
-                // Add to map
-                this.map.addControl(draw, 'top-left');
-                this.draw = draw;
-
-                // Expose for debugging
-                window.draw = draw;
-
-                console.log('MapboxDraw control added');
-
-                // Define updateArea function for calculating change
-                const updateArea = async (e) => {
-                    const data = draw.getAll();
-                    if (data.features.length === 0) return;
-
-                    // 1. Get Geometry
-                    const geometry = data.features[0].geometry;
-
-                    // 2. Check Context (Must be in Change Detection Mode)
-                    const mode = App.currentMode || 'embeddings';
-
-                    if (mode !== 'change') {
-                        alert("⚠️ Mode Mismatch\n\nPlease switch the visualization mode to 'Change Detection' (CHG) before measuring.\n\nUse the Case Studies panel to select a change detection scenario.");
-                        draw.deleteAll();
-                        return;
-                    }
-
-                    // 3. Run Calculation
-                    try {
-                        console.log("Starting calculation for:", geometry);
-                        const year1 = App.changeYears?.year1 || 2017;
-                        const year2 = App.changeYears?.year2 || 2024;
-                        const threshold = 0.7;
-
-                        if (typeof EarthEngineManager === 'undefined' || typeof EarthEngineManager.calculateChangeArea !== 'function') {
-                            throw new Error("EarthEngineManager.calculateChangeArea function is missing.");
-                        }
-
-                        const areaKm2 = await EarthEngineManager.calculateChangeArea(geometry, year1, year2, threshold);
-
-                        // 4. Show Result
-                        alert(`📉 CHANGE ANALYSIS:\n\nArea of significant change: ${areaKm2} km²\n(Between ${year1} and ${year2})`);
-
-                    } catch (error) {
-                        console.error("Calculation failed:", error);
-                        alert("Error: " + error.message);
-                    } finally {
-                        draw.deleteAll();
-                    }
-                };
-
-                // Add Event Listeners for Calculation
-                this.map.on('draw.create', (e) => {
-                    console.log("Shape drawn:", e.features);
-                    updateArea(e);
-                });
-                this.map.on('draw.update', (e) => {
-                    console.log("Shape updated:", e.features);
-                    updateArea(e);
-                });
-                this.map.on('draw.modechange', (e) => {
-                    console.log("Draw mode changed to:", e.mode);
-                });
-            } else {
-                console.error("MapboxDraw library not loaded!");
-            }
         });
 
         // Handle map errors
