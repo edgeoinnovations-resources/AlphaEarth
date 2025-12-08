@@ -371,46 +371,61 @@ const App = {
      * @param {Object} feature - GeoJSON feature
      */
     async processDrawnPolygon(feature) {
+        // Get all drawn features
+        const data = this.draw ? this.draw.getAll() : null;
+        if (!data || data.features.length === 0) {
+            console.warn('No features to process');
+            return;
+        }
+
+        // Get geometry from the feature
+        const geometry = feature ? feature.geometry : data.features[0].geometry;
+
         // Check if we're in change detection mode
         if (this.currentMode !== 'change') {
-            alert('Please switch to Change Detection mode first.\n\nUse the Case Studies panel to select a change detection scenario, or implement change detection through the controls.');
-            // Delete the drawn polygon
+            alert("⚠️ Mode Mismatch\n\nPlease switch the visualization mode to 'Change Detection' before measuring.\n\nUse the Case Studies panel to select a change detection scenario.");
             if (this.draw) {
                 this.draw.deleteAll();
             }
             return;
         }
 
-        // Show loading state
-        const loadingMsg = 'Calculating change area...';
-        console.log(loadingMsg);
+        // Visual feedback: Change button color to indicate processing
+        const btn = document.querySelector('.mapbox-gl-draw_polygon');
+        if (btn) btn.style.backgroundColor = '#ffeb3b';
+
+        console.log("Starting change area calculation...", geometry);
 
         try {
-            // Get the geometry from the feature
-            const geometry = feature.geometry;
+            // Get years from current state
+            const year1 = this.changeYears.year1 || 2017;
+            const year2 = this.changeYears.year2 || 2024;
+            const threshold = 0.7;
+
+            // Verify EarthEngineManager is available and has the method
+            if (typeof EarthEngineManager === 'undefined' || !EarthEngineManager.calculateChangeArea) {
+                throw new Error('EarthEngineManager.calculateChangeArea is not available');
+            }
 
             // Calculate change area using Earth Engine
             const areaKm2 = await EarthEngineManager.calculateChangeArea(
                 geometry,
-                this.changeYears.year1,
-                this.changeYears.year2,
-                0.7 // Default threshold
+                year1,
+                year2,
+                threshold
             );
 
             // Display result
-            const resultMsg = `Change Detected: ${areaKm2} km²\n\nAnalysis Period: ${this.changeYears.year1} to ${this.changeYears.year2}\nThreshold: 0.7 (70% similarity)`;
-            alert(resultMsg);
-            console.log(resultMsg);
-
-            // Clear the drawn polygon after calculation
-            if (this.draw) {
-                this.draw.deleteAll();
-            }
+            alert(`📉 CHANGE ANALYSIS\n\nArea of significant change: ${areaKm2} km²\n\nPeriod: ${year1} to ${year2}\nThreshold: ${threshold * 100}% similarity`);
+            console.log(`Change area result: ${areaKm2} km²`);
 
         } catch (error) {
-            console.error('Error calculating change area:', error);
-            alert('Error calculating change area: ' + error.message);
-            // Clear the polygon on error
+            console.error('Calculation failed:', error);
+            alert('Error calculating area: ' + (error.message || 'Unknown error. Check console for details.'));
+        } finally {
+            // Reset UI
+            if (btn) btn.style.backgroundColor = '';
+            // Clear shape for next measurement
             if (this.draw) {
                 this.draw.deleteAll();
             }
