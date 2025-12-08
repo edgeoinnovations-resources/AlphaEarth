@@ -244,6 +244,75 @@ const EarthEngineManager = {
     },
 
     /**
+     * Calculate the area of change within a drawn polygon
+     * @param {Object} geometry - GeoJSON geometry object
+     * @param {number} year1 - First year
+     * @param {number} year2 - Second year
+     * @param {number} threshold - Similarity threshold (pixels below this are "changed")
+     * @returns {Promise<number>} Area in square kilometers
+     */
+    async calculateChangeArea(geometry, year1, year2, threshold = 0.7) {
+        if (!this.initialized) {
+            throw new Error('Earth Engine not initialized');
+        }
+
+        return new Promise((resolve, reject) => {
+            try {
+                const bandNames = this.getAllBandNames();
+
+                // Convert GeoJSON geometry to Earth Engine geometry
+                const eeGeometry = ee.Geometry(geometry);
+
+                // Get images for both years
+                const image1 = ee.ImageCollection(this.DATASET_ID)
+                    .filterDate(year1 + '-01-01', (year1 + 1) + '-01-01')
+                    .mosaic()
+                    .select(bandNames);
+
+                const image2 = ee.ImageCollection(this.DATASET_ID)
+                    .filterDate(year2 + '-01-01', (year2 + 1) + '-01-01')
+                    .mosaic()
+                    .select(bandNames);
+
+                // Calculate dot product (similarity)
+                const dotProduct = image1.multiply(image2).reduce(ee.Reducer.sum());
+                const similarity = dotProduct.clamp(0, 1);
+
+                // Create mask where similarity < threshold (this is "change")
+                const changeMask = similarity.lt(threshold);
+
+                // Calculate area using pixelArea
+                const areaImage = changeMask.multiply(ee.Image.pixelArea());
+
+                // Reduce region to get total area
+                const stats = areaImage.reduceRegion({
+                    reducer: ee.Reducer.sum(),
+                    geometry: eeGeometry,
+                    scale: 30, // 30m scale for speed
+                    maxPixels: 1e9
+                });
+
+                // Get the result
+                stats.evaluate((result, error) => {
+                    if (error) {
+                        console.error('Error calculating change area:', error);
+                        reject(new Error('Failed to calculate change area: ' + error));
+                    } else {
+                        // Convert square meters to square kilometers
+                        const areaM2 = result.sum || 0;
+                        const areaKm2 = areaM2 / 1e6;
+                        console.log(`Change area calculated: ${areaKm2.toFixed(2)} km²`);
+                        resolve(parseFloat(areaKm2.toFixed(2)));
+                    }
+                });
+            } catch (error) {
+                console.error('Error in calculateChangeArea:', error);
+                reject(error);
+            }
+        });
+    },
+
+    /**
      * Get clustering visualization using k-means on embeddings
      * @param {number} year - Year to analyze
      * @param {string[]} bands - Bands to use for clustering

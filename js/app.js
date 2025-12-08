@@ -8,6 +8,9 @@
 
 const App = {
     map: null,
+    draw: null,
+    currentMode: 'embeddings', // Track current visualization mode: 'embeddings', 'change', 'clustering'
+    changeYears: { year1: 2017, year2: 2024 }, // Store change detection years
     embeddingsLayerId: 'embeddings-layer',
     labelsLayerId: 'labels-layer',
     changeLayerId: 'change-layer',
@@ -123,6 +126,9 @@ const App = {
                 'space-color': 'rgb(5, 5, 15)',
                 'star-intensity': 0.6
             });
+
+            // Initialize Mapbox GL Draw for polygon drawing
+            this.initDrawControl();
         });
 
         // Handle map errors
@@ -151,6 +157,9 @@ const App = {
     async loadEmbeddings(params) {
         try {
             console.log('Loading embeddings:', params);
+
+            // Set mode to embeddings
+            this.setMode('embeddings');
 
             // Get tile URL from Earth Engine
             const tileUrl = await EarthEngineManager.getEmbeddingsTileUrl(
@@ -318,6 +327,118 @@ const App = {
     },
 
     /**
+     * Initialize Mapbox GL Draw control for polygon drawing
+     */
+    initDrawControl() {
+        // Check if MapboxDraw is available
+        if (typeof MapboxDraw === 'undefined') {
+            console.warn('MapboxDraw not loaded - polygon drawing disabled');
+            return;
+        }
+
+        try {
+            this.draw = new MapboxDraw({
+                displayControlsDefault: false,
+                controls: {
+                    polygon: true,
+                    trash: true
+                },
+                defaultMode: 'simple_select'
+            });
+
+            this.map.addControl(this.draw, 'top-left');
+            console.log('MapboxDraw control initialized');
+
+            // Add event listeners for draw events
+            this.map.on('draw.create', (e) => this.handleDrawCreate(e));
+            this.map.on('draw.update', (e) => this.handleDrawUpdate(e));
+
+        } catch (error) {
+            console.error('Failed to initialize MapboxDraw:', error);
+        }
+    },
+
+    /**
+     * Handle polygon creation event
+     * @param {Object} e - Draw event
+     */
+    async handleDrawCreate(e) {
+        await this.processDrawnPolygon(e.features[0]);
+    },
+
+    /**
+     * Handle polygon update event
+     * @param {Object} e - Draw event
+     */
+    async handleDrawUpdate(e) {
+        await this.processDrawnPolygon(e.features[0]);
+    },
+
+    /**
+     * Process a drawn polygon to calculate change area
+     * @param {Object} feature - GeoJSON feature
+     */
+    async processDrawnPolygon(feature) {
+        // Check if we're in change detection mode
+        if (this.currentMode !== 'change') {
+            alert('Please switch to Change Detection mode first.\n\nUse the Case Studies panel to select a change detection scenario, or implement change detection through the controls.');
+            // Delete the drawn polygon
+            if (this.draw) {
+                this.draw.deleteAll();
+            }
+            return;
+        }
+
+        // Show loading state
+        const loadingMsg = 'Calculating change area...';
+        console.log(loadingMsg);
+
+        try {
+            // Get the geometry from the feature
+            const geometry = feature.geometry;
+
+            // Calculate change area using Earth Engine
+            const areaKm2 = await EarthEngineManager.calculateChangeArea(
+                geometry,
+                this.changeYears.year1,
+                this.changeYears.year2,
+                0.7 // Default threshold
+            );
+
+            // Display result
+            const resultMsg = `Change Detected: ${areaKm2} km²\n\nAnalysis Period: ${this.changeYears.year1} to ${this.changeYears.year2}\nThreshold: 0.7 (70% similarity)`;
+            alert(resultMsg);
+            console.log(resultMsg);
+
+            // Clear the drawn polygon after calculation
+            if (this.draw) {
+                this.draw.deleteAll();
+            }
+
+        } catch (error) {
+            console.error('Error calculating change area:', error);
+            alert('Error calculating change area: ' + error.message);
+            // Clear the polygon on error
+            if (this.draw) {
+                this.draw.deleteAll();
+            }
+        }
+    },
+
+    /**
+     * Set the current visualization mode
+     * @param {string} mode - 'embeddings', 'change', or 'clustering'
+     * @param {Object} options - Additional options (e.g., years for change detection)
+     */
+    setMode(mode, options = {}) {
+        this.currentMode = mode;
+        if (mode === 'change' && options.year1 && options.year2) {
+            this.changeYears = { year1: options.year1, year2: options.year2 };
+        }
+        console.log(`Mode set to: ${mode}`, options);
+    },
+
+    /**
      * Add change detection layer comparing two years
      * @param {number} year1 - First year
      * @param {number} year2 - Second year
@@ -325,6 +446,9 @@ const App = {
     async addChangeDetectionLayer(year1, year2) {
         try {
             console.log(`Loading change detection: ${year1} vs ${year2}`);
+
+            // Set mode to change detection
+            this.setMode('change', { year1, year2 });
 
             // Get change detection tile URL
             const tileUrl = await EarthEngineManager.getChangeDetectionUrl(year1, year2);
@@ -380,6 +504,9 @@ const App = {
     async addClusteringLayer(year, bands) {
         try {
             console.log(`Loading clustering for year ${year} with bands:`, bands);
+
+            // Set mode to clustering
+            this.setMode('clustering');
 
             // Get clustering tile URL
             const tileUrl = await EarthEngineManager.getClusteringUrl(year, bands);
