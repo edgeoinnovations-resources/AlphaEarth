@@ -122,7 +122,7 @@ const App = {
                     polygon: true,
                     trash: true
                 },
-                defaultMode: 'draw_polygon'
+                defaultMode: 'simple_select' // Start in neutral mode
             });
             this.map.addControl(draw, 'top-left');
             this.draw = draw;
