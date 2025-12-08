@@ -116,23 +116,26 @@ const App = {
 
         // Initialize Draw Control (immediately after map instantiation)
         if (typeof MapboxDraw !== 'undefined') {
-            const draw = new MapboxDraw({
-                displayControlsDefault: false,
-                controls: {
-                    polygon: true,
-                    trash: true
-                },
-                defaultMode: 'simple_select'
-            });
+            try {
+                console.log("Checking Shim:", window.mapboxgl ? "Defined" : "MISSING");
 
-            // Add to map
-            this.map.addControl(draw, 'top-left');
-            this.draw = draw;
+                const draw = new MapboxDraw({
+                    displayControlsDefault: false,
+                    controls: {
+                        polygon: true,
+                        trash: true
+                    },
+                    defaultMode: 'simple_select'
+                });
 
-            // Expose for debugging
-            window.draw = draw;
+                // Add to map
+                this.map.addControl(draw, 'top-left');
+                this.draw = draw;
 
-            console.log('MapboxDraw control added');
+                // Expose for debugging
+                window.draw = draw;
+
+                console.log('MapboxDraw control added successfully');
 
             // Define updateArea function for calculating change
             const updateArea = async (e) => {
@@ -187,6 +190,10 @@ const App = {
             this.map.on('draw.modechange', (e) => {
                 console.log("Draw mode changed to:", e.mode);
             });
+
+            } catch (err) {
+                console.error("CRITICAL DRAW ERROR:", err);
+            }
         } else {
             console.error("MapboxDraw library not loaded!");
         }
