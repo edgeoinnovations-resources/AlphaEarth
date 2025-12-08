@@ -64,14 +64,14 @@ const App = {
                         encoding: 'terrarium',
                         maxzoom: 14
                     },
-                    // Labels source
+                    // Labels source (CartoDB Dark Matter)
                     'labels': {
                         type: 'raster',
                         tiles: [
-                            'https://stamen-tiles.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}.png'
+                            'https://basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png'
                         ],
                         tileSize: 256,
-                        maxzoom: 18
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
                     }
                 },
                 layers: [
