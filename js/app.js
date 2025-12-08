@@ -116,7 +116,7 @@ const App = {
 
         // Set up globe atmosphere and Draw Control on load
         this.map.on('load', () => {
-            console.log('Map loaded');
+            console.log('Map loaded - initializing Draw control...');
 
             // Add atmosphere/fog effect for globe
             this.map.setFog({
