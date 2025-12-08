@@ -90,7 +90,7 @@ async function sendMessage() {
     try {
         // 4. API: Call Gemini (NEW SDK METHOD)
         const response = await client.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'models/gemini-1.5-flash',
             contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
             config: {
                 temperature: 0.7,
