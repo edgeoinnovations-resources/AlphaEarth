@@ -116,6 +116,11 @@ const App = {
 
         // Initialize Draw Control immediately after other controls
         if (typeof MapboxDraw !== 'undefined') {
+            // Compatibility Shim: Mapbox Draw expects 'mapboxgl' global
+            if (typeof mapboxgl === 'undefined' && typeof maplibregl !== 'undefined') {
+                window.mapboxgl = maplibregl;
+            }
+
             const draw = new MapboxDraw({
                 displayControlsDefault: false,
                 controls: {
