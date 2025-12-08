@@ -114,6 +114,33 @@ const App = {
 
         this.map.addControl(new maplibregl.FullscreenControl(), 'top-left');
 
+        // Initialize Draw Control immediately after other controls
+        if (typeof MapboxDraw !== 'undefined') {
+            const draw = new MapboxDraw({
+                displayControlsDefault: false,
+                controls: {
+                    polygon: true,
+                    trash: true
+                },
+                defaultMode: 'draw_polygon'
+            });
+            this.map.addControl(draw, 'top-left');
+            this.draw = draw;
+            console.log('MapboxDraw control added');
+
+            // Add Event Listeners for Calculation
+            this.map.on('draw.create', (e) => {
+                console.log("Shape drawn:", e.features);
+                this.handleDrawCreate(e);
+            });
+            this.map.on('draw.update', (e) => {
+                console.log("Shape updated:", e.features);
+                this.handleDrawUpdate(e);
+            });
+        } else {
+            console.error("MapboxDraw library not loaded!");
+        }
+
         // Set up globe atmosphere on load
         this.map.on('load', () => {
             console.log('Map loaded');
@@ -126,9 +153,6 @@ const App = {
                 'space-color': 'rgb(5, 5, 15)',
                 'star-intensity': 0.6
             });
-
-            // Initialize Mapbox GL Draw for polygon drawing
-            this.initDrawControl();
         });
 
         // Handle map errors
@@ -324,38 +348,6 @@ const App = {
             bearing: 0,
             duration: 1500
         });
-    },
-
-    /**
-     * Initialize Mapbox GL Draw control for polygon drawing
-     */
-    initDrawControl() {
-        // Check if MapboxDraw is available
-        if (typeof MapboxDraw === 'undefined') {
-            console.warn('MapboxDraw not loaded - polygon drawing disabled');
-            return;
-        }
-
-        try {
-            this.draw = new MapboxDraw({
-                displayControlsDefault: false,
-                controls: {
-                    polygon: true,
-                    trash: true
-                },
-                defaultMode: 'simple_select'
-            });
-
-            this.map.addControl(this.draw, 'top-left');
-            console.log('MapboxDraw control initialized');
-
-            // Add event listeners for draw events
-            this.map.on('draw.create', (e) => this.handleDrawCreate(e));
-            this.map.on('draw.update', (e) => this.handleDrawUpdate(e));
-
-        } catch (error) {
-            console.error('Failed to initialize MapboxDraw:', error);
-        }
     },
 
     /**
