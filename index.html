@@ -9,14 +9,9 @@
     <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
     <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
-    <script>
-        // Critical: Mapbox Draw looks for 'mapboxgl', so we point it to 'maplibregl'
-        window.mapboxgl = maplibregl;
-    </script>
-
-    <!-- Mapbox GL Draw v1.5.0 for polygon drawing -->
-    <link href="https://unpkg.com/@mapbox/mapbox-gl-draw@1.5.0/dist/mapbox-gl-draw.css" rel="stylesheet" />
-    <script src="https://unpkg.com/@mapbox/mapbox-gl-draw@1.5.0/dist/mapbox-gl-draw.js"></script>
+    <!-- Terra Draw (Native MapLibre drawing library) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@watergis/maplibre-gl-terradraw@1.9.7/dist/maplibre-gl-terradraw.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@watergis/maplibre-gl-terradraw@1.9.7/dist/maplibre-gl-terradraw.umd.js"></script>
 
     <!-- Google Earth Engine API -->
     <script src="https://cdn.jsdelivr.net/npm/@google/earthengine@1.2.0/build/ee_api_js.js"></script>

@@ -114,88 +114,80 @@ const App = {
 
         this.map.addControl(new maplibregl.FullscreenControl(), 'top-left');
 
-        // Initialize Draw Control (immediately after map instantiation)
-        if (typeof MapboxDraw !== 'undefined') {
+        // Initialize Terra Draw (Native MapLibre Control)
+        if (typeof MaplibreTerradrawControl !== 'undefined') {
             try {
-                console.log("Checking Shim:", window.mapboxgl ? "Defined" : "MISSING");
-
-                const draw = new MapboxDraw({
-                    displayControlsDefault: false,
-                    controls: {
-                        polygon: true,
-                        trash: true
-                    },
-                    defaultMode: 'simple_select'
+                const drawControl = new MaplibreTerradrawControl({
+                    modes: ['polygon', 'delete'],
+                    open: true
                 });
+                this.map.addControl(drawControl, 'top-left');
+                this.drawControl = drawControl;
 
-                // Add to map
-                this.map.addControl(draw, 'top-left');
-                this.draw = draw;
+                console.log('Terra Draw control added successfully');
 
-                // Expose for debugging
-                window.draw = draw;
+                // Define updateArea function for calculating change
+                const updateArea = async (feature) => {
+                    if (!feature || !feature.geometry) return;
 
-                console.log('MapboxDraw control added successfully');
+                    // 1. Check Context (Must be in Change Detection Mode)
+                    const mode = App.currentMode || 'embeddings';
 
-            // Define updateArea function for calculating change
-            const updateArea = async (e) => {
-                const data = draw.getAll();
-                if (data.features.length === 0) return;
-
-                // 1. Get Geometry
-                const geometry = data.features[0].geometry;
-
-                // 2. Check Context (Must be in Change Detection Mode)
-                const mode = App.currentMode || 'embeddings';
-
-                if (mode !== 'change') {
-                    alert("⚠️ Mode Mismatch\n\nPlease switch the visualization mode to 'Change Detection' (CHG) before measuring.\n\nUse the Case Studies panel to select a change detection scenario.");
-                    draw.deleteAll();
-                    return;
-                }
-
-                // 3. Run Calculation
-                try {
-                    console.log("Starting calculation for:", geometry);
-                    const year1 = App.changeYears?.year1 || 2017;
-                    const year2 = App.changeYears?.year2 || 2024;
-                    const threshold = 0.7;
-
-                    if (typeof EarthEngineManager === 'undefined' || typeof EarthEngineManager.calculateChangeArea !== 'function') {
-                        throw new Error("EarthEngineManager.calculateChangeArea function is missing.");
+                    if (mode !== 'change') {
+                        alert("⚠️ Mode Mismatch\n\nPlease switch the visualization mode to 'Change Detection' (CHG) before measuring.\n\nUse the Case Studies panel to select a change detection scenario.");
+                        return;
                     }
 
-                    const areaKm2 = await EarthEngineManager.calculateChangeArea(geometry, year1, year2, threshold);
+                    // 2. Run Calculation
+                    try {
+                        console.log("Calculating change for:", feature.geometry);
+                        const year1 = App.changeYears?.year1 || 2017;
+                        const year2 = App.changeYears?.year2 || 2024;
+                        const threshold = 0.7;
 
-                    // 4. Show Result
-                    alert(`📉 CHANGE ANALYSIS:\n\nArea of significant change: ${areaKm2} km²\n(Between ${year1} and ${year2})`);
+                        if (typeof EarthEngineManager === 'undefined' || typeof EarthEngineManager.calculateChangeArea !== 'function') {
+                            throw new Error("EarthEngineManager.calculateChangeArea function is missing.");
+                        }
 
-                } catch (error) {
-                    console.error("Calculation failed:", error);
-                    alert("Error: " + error.message);
-                } finally {
-                    draw.deleteAll();
-                }
-            };
+                        // Show "Calculating..." feedback
+                        const originalTitle = document.title;
+                        document.title = "⏳ Calculating...";
 
-            // Add Event Listeners for Calculation
-            this.map.on('draw.create', (e) => {
-                console.log("Shape drawn:", e.features);
-                updateArea(e);
-            });
-            this.map.on('draw.update', (e) => {
-                console.log("Shape updated:", e.features);
-                updateArea(e);
-            });
-            this.map.on('draw.modechange', (e) => {
-                console.log("Draw mode changed to:", e.mode);
-            });
+                        const areaKm2 = await EarthEngineManager.calculateChangeArea(feature.geometry, year1, year2, threshold);
+
+                        // Show Result
+                        alert(`📉 CHANGE ANALYSIS:\n\nArea of significant change: ${areaKm2} km²\n(Between ${year1} and ${year2})`);
+
+                    } catch (error) {
+                        console.error("Calculation failed:", error);
+                        alert("Error: " + error.message);
+                    } finally {
+                        document.title = "AlphaEarth Satellite Embeddings Viewer";
+                    }
+                };
+
+                // Get the underlying Terra Draw instance to listen for events
+                const terraDraw = drawControl.getTerraDrawInstance();
+
+                // Listen for 'finish' (when a shape is completed)
+                terraDraw.on('finish', (id, context) => {
+                    if (context.action === 'draw') {
+                        // Get all features
+                        const snapshot = terraDraw.getSnapshot();
+                        // Find the one just drawn
+                        const feature = snapshot.find(f => f.id === id);
+                        if (feature) {
+                            console.log("Shape finished:", feature);
+                            updateArea(feature);
+                        }
+                    }
+                });
 
             } catch (err) {
-                console.error("CRITICAL DRAW ERROR:", err);
+                console.error("CRITICAL TERRA DRAW ERROR:", err);
             }
         } else {
-            console.error("MapboxDraw library not loaded!");
+            console.error("Terra Draw library not loaded!");
         }
 
         // Set up globe atmosphere on load
