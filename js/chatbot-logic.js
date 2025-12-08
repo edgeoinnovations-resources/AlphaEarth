@@ -1,10 +1,10 @@
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 import { alphaEarthContext, caseStudies } from "./chatbot-data.js";
 
-// Gemini API Key
+// Gemini API Key (AlphaEarth Website Key)
 const API_KEY = "AIzaSyAa-lWVCNKF5iiK938tPHWyjmdyrE_4zLs";
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 let chatWindow, messagesDiv, inputField;
 
