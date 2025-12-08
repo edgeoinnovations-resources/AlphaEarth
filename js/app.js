@@ -128,14 +128,57 @@ const App = {
             this.draw = draw;
             console.log('MapboxDraw control added');
 
+            // Define updateArea function for calculating change
+            const updateArea = async (e) => {
+                const data = draw.getAll();
+                if (data.features.length === 0) return;
+
+                // 1. Get Geometry
+                const geometry = data.features[0].geometry;
+
+                // 2. Check Context (Must be in Change Detection Mode)
+                const mode = App.currentMode || 'embeddings';
+
+                if (mode !== 'change') {
+                    alert("⚠️ Mode Mismatch\n\nPlease switch the visualization mode to 'Change Detection' (CHG) before measuring.\n\nUse the Case Studies panel to select a change detection scenario.");
+                    draw.deleteAll();
+                    return;
+                }
+
+                // 3. Run Calculation
+                try {
+                    console.log("Starting calculation for:", geometry);
+                    // Use current state years (defaulting if necessary)
+                    const year1 = App.changeYears?.year1 || 2017;
+                    const year2 = App.changeYears?.year2 || 2024;
+                    const threshold = 0.7;
+
+                    // Ensure EarthEngineManager.calculateChangeArea is available
+                    if (typeof EarthEngineManager === 'undefined' || typeof EarthEngineManager.calculateChangeArea !== 'function') {
+                        throw new Error("EarthEngineManager.calculateChangeArea function is missing.");
+                    }
+
+                    const areaKm2 = await EarthEngineManager.calculateChangeArea(geometry, year1, year2, threshold);
+
+                    // 4. Show Result
+                    alert(`📉 CHANGE ANALYSIS:\n\nArea of significant change: ${areaKm2} km²\n(Between ${year1} and ${year2})`);
+
+                } catch (error) {
+                    console.error("Calculation failed:", error);
+                    alert("Error: " + error.message);
+                } finally {
+                    draw.deleteAll(); // Clear shape for next measure
+                }
+            };
+
             // Add Event Listeners for Calculation
             this.map.on('draw.create', (e) => {
                 console.log("Shape drawn:", e.features);
-                this.handleDrawCreate(e);
+                updateArea(e);
             });
             this.map.on('draw.update', (e) => {
                 console.log("Shape updated:", e.features);
-                this.handleDrawUpdate(e);
+                updateArea(e);
             });
         } else {
             console.error("MapboxDraw library not loaded!");
