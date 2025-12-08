@@ -456,3 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export for global access
 window.App = App;
+// Also expose map directly for chatbot integration
+Object.defineProperty(window, 'map', {
+    get: function() { return App.map; }
+});

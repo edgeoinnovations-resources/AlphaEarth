@@ -195,5 +195,22 @@
     <script src="js/case-studies.js"></script>
     <script src="js/case-studies-ui.js"></script>
     <script src="js/app.js"></script>
+
+    <!-- AI Chatbot Widget -->
+    <button id="ae-chat-toggle">🤖 Ask AI</button>
+    <div id="ae-chatbot-container">
+        <div id="ae-chat-header">
+            <span>AlphaEarth Guide</span>
+            <button id="ae-chat-close">×</button>
+        </div>
+        <div id="ae-chat-messages">
+            <div class="ae-message bot">Hello! I can explain the satellite data or specific case studies.</div>
+        </div>
+        <div id="ae-chat-input-area">
+            <input type="text" id="ae-chat-input" placeholder="Ask about this area...">
+            <button id="ae-chat-send">➤</button>
+        </div>
+    </div>
+    <script type="module" src="js/chatbot-logic.js"></script>
 </body>
 </html>
