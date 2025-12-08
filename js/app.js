@@ -167,21 +167,26 @@ const App = {
                 };
 
                 // Get the underlying Terra Draw instance to listen for events
-                const terraDraw = drawControl.getTerraDrawInstance();
-
-                // Listen for 'finish' (when a shape is completed)
-                terraDraw.on('finish', (id, context) => {
-                    if (context.action === 'draw') {
-                        // Get all features
-                        const snapshot = terraDraw.getSnapshot();
-                        // Find the one just drawn
-                        const feature = snapshot.find(f => f.id === id);
-                        if (feature) {
-                            console.log("Shape finished:", feature);
-                            updateArea(feature);
-                        }
+                // We need to wait for the control to be added
+                setTimeout(() => {
+                    const terraDraw = drawControl.getTerraDrawInstance();
+                    if (terraDraw) {
+                        // Listen for 'finish' (when a shape is completed)
+                        terraDraw.on('finish', (id, context) => {
+                            if (context.action === 'draw') {
+                                const snapshot = terraDraw.getSnapshot();
+                                const feature = snapshot.find(f => f.id === id);
+                                if (feature) {
+                                    console.log("Shape finished:", feature);
+                                    updateArea(feature);
+                                }
+                            }
+                        });
+                        console.log('Terra Draw event listener attached');
+                    } else {
+                        console.error('Could not get Terra Draw instance');
                     }
-                });
+                }, 1000);
 
             } catch (err) {
                 console.error("CRITICAL TERRA DRAW ERROR:", err);
