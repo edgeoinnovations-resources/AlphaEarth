@@ -6,15 +6,20 @@
     <title>AlphaEarth Satellite Embeddings Viewer</title>
 
     <!-- MapLibre GL JS for 3D Globe -->
-    <script src="https://unpkg.com/maplibre-gl@4.1.0/dist/maplibre-gl.js"></script>
-    <link href="https://unpkg.com/maplibre-gl@4.1.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
 
-    <!-- Google Earth Engine API -->
-    <script src="https://cdn.jsdelivr.net/npm/@google/earthengine@1.2.0/build/ee_api_js.js"></script>
+    <script>
+        // Force Mapbox Draw to use MapLibre
+        window.mapboxgl = maplibregl;
+    </script>
 
     <!-- Mapbox GL Draw for polygon drawing -->
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.css" type="text/css" />
+
+    <!-- Google Earth Engine API -->
+    <script src="https://cdn.jsdelivr.net/npm/@google/earthengine@1.2.0/build/ee_api_js.js"></script>
 
     <!-- Custom styles -->
     <link rel="stylesheet" href="css/style.css">
