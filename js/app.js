@@ -225,24 +225,37 @@ const App = {
         this.map.on('load', () => {
             console.log('Map loaded');
 
-            // Add atmosphere/fog effect for globe
-            this.map.setFog({
-                color: 'rgb(5, 5, 25)',
-                'high-color': 'rgb(20, 20, 60)',
-                'horizon-blend': 0.03,
-                'space-color': 'rgb(5, 5, 15)',
-                'star-intensity': 0.6
-            });
+            // Add atmosphere/fog effect for globe (wrapped to prevent crash on unsupported devices)
+            try {
+                if (this.map.setFog) {
+                    this.map.setFog({
+                        color: 'rgb(5, 5, 25)',
+                        'high-color': 'rgb(20, 20, 60)',
+                        'horizon-blend': 0.03,
+                        'space-color': 'rgb(5, 5, 15)',
+                        'star-intensity': 0.6
+                    });
+                }
+            } catch (e) {
+                console.warn('Failed to set fog:', e);
+            }
 
-            // Initialize Terra Draw (DrawManager) - Direct init, relying on internal timeout for start()
+            // Initialize Terra Draw (DrawManager)
             console.log('Attempting to initialize DrawManager...');
-            const drawInitialized = DrawManager.init(this.map, handlePolygonComplete);
-
-            if (drawInitialized) {
-                this.map.addControl(new MeasureAreaControl(), 'top-left');
-                console.log('MeasureAreaControl added to map.');
-            } else {
-                console.error('DrawManager failed to initialize.');
+            try {
+                if (typeof DrawManager !== 'undefined') {
+                    const drawInitialized = DrawManager.init(this.map, handlePolygonComplete);
+                    if (drawInitialized) {
+                        this.map.addControl(new MeasureAreaControl(), 'top-left');
+                        console.log('MeasureAreaControl added to map.');
+                    } else {
+                        console.error('DrawManager.init returned false. Check Terra Draw globals.');
+                    }
+                } else {
+                    console.error('DrawManager global is not defined. check draw-manager.js loading.');
+                }
+            } catch (e) {
+                console.error('CRITICAL: Error initializing DrawManager:', e);
             }
         });
 
