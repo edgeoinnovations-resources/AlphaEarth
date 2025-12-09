@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 // import { alphaEarthContext, caseStudies } from "./chatbot-data.js";
 
 // --- CONFIGURATION ---
-const API_KEY = "AIzaSyAa-lWVCNKF5iiK938tPHWyjmdyrE_4zLs";
+const API_KEY = "AIzaSyDk-1St9e7QN5gMscjJeba2D6iYb3DsO8I";
 
 // SDK Initialization
 const genAI = new GoogleGenerativeAI(API_KEY);
