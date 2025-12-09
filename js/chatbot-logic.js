@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-import { alphaEarthContext, caseStudies } from "./chatbot-data.js";
+// Data loaded from window global
+// import { alphaEarthContext, caseStudies } from "./chatbot-data.js";
 
 // --- CONFIGURATION ---
 const API_KEY = "AIzaSyAa-lWVCNKF5iiK938tPHWyjmdyrE_4zLs";

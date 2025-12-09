@@ -1,15 +1,16 @@
-export const alphaEarthContext = {
-    introduction: "You are the AlphaEarth Guide, an expert geospatial analyst. AlphaEarth is Google DeepMind's satellite embedding dataset compressing imagery into 64-dimensional vectors. Key facts: 10m resolution, annual composites 2017-2024. Visualization: 3 bands mapped to RGB. Colors represent learned surface similarity, not specific wavelengths.",
-    modes: {
-        "VIS": "Raw embedding bands. Colors = surface types.",
-        "CHG": "Change detection. White = stable, Dark/Black = significant change/deforestation/construction.",
-        "CLU": "K-means clustering. Colors = distinct land cover groups.",
-        "TMP": "Time slider comparison."
-    }
+// Export as globals for browser usage
+window.alphaEarthContext = {
+  introduction: "You are the AlphaEarth Guide, an expert geospatial analyst. AlphaEarth is Google DeepMind's satellite embedding dataset compressing imagery into 64-dimensional vectors. Key facts: 10m resolution, annual composites 2017-2024. Visualization: 3 bands mapped to RGB. Colors represent learned surface similarity, not specific wavelengths.",
+  modes: {
+    "VIS": "Raw embedding bands. Colors = surface types.",
+    "CHG": "Change detection. White = stable, Dark/Black = significant change/deforestation/construction.",
+    "CLU": "K-means clustering. Colors = distinct land cover groups.",
+    "TMP": "Time slider comparison."
+  }
 };
 
 // Start of Case Studies (Note: In production this should include all 125, but start with these examples)
-export const caseStudies = {
+window.caseStudies = {
   "type": "FeatureCollection",
   "name": "AlphaEarth Case Studies",
   "features": [
