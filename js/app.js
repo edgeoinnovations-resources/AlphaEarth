@@ -234,13 +234,16 @@ const App = {
                 'star-intensity': 0.6
             });
 
-            // Initialize drawing tool using DrawManager (Must happen after style is fully idle)
-            this.map.once('idle', () => {
-                const drawInitialized = DrawManager.init(this.map, handlePolygonComplete);
-                if (drawInitialized) {
-                    this.map.addControl(new MeasureAreaControl(), 'top-left');
-                }
-            });
+            // Initialize Terra Draw (DrawManager) - Direct init, relying on internal timeout for start()
+            console.log('Attempting to initialize DrawManager...');
+            const drawInitialized = DrawManager.init(this.map, handlePolygonComplete);
+
+            if (drawInitialized) {
+                this.map.addControl(new MeasureAreaControl(), 'top-left');
+                console.log('MeasureAreaControl added to map.');
+            } else {
+                console.error('DrawManager failed to initialize.');
+            }
         });
 
         // Handle map errors
