@@ -114,88 +114,114 @@ const App = {
 
         this.map.addControl(new maplibregl.FullscreenControl(), 'top-left');
 
-        // Initialize Terra Draw (Native MapLibre Control)
-        if (typeof MaplibreTerradrawControl !== 'undefined') {
-            try {
-                const drawControl = new MaplibreTerradrawControl({
-                    modes: ['polygon', 'delete'],
-                    open: true
-                });
-                this.map.addControl(drawControl, 'top-left');
-                this.drawControl = drawControl;
+        // Define updateArea function for calculating change
+        // Initialize drawing tool using DrawManager deferred to map load
+        // const drawInitialized = DrawManager.init(this.map, handlePolygonComplete);
+        // if (drawInitialized) {
+        //     this.map.addControl(new MeasureAreaControl(), 'top-left');
+        // }
 
-                console.log('Terra Draw control added successfully');
 
-                // Define updateArea function for calculating change
-                const updateArea = async (feature) => {
-                    if (!feature || !feature.geometry) return;
+        // Handler for completed polygons
+        function handlePolygonComplete(polygon) {
+            console.log('Polygon received for analysis:', polygon);
 
-                    // 1. Check Context (Must be in Change Detection Mode)
-                    const mode = App.currentMode || 'embeddings';
-
-                    if (mode !== 'change') {
-                        alert("⚠️ Mode Mismatch\n\nPlease switch the visualization mode to 'Change Detection' (CHG) before measuring.\n\nUse the Case Studies panel to select a change detection scenario.");
-                        return;
-                    }
-
-                    // 2. Run Calculation
-                    try {
-                        console.log("Calculating change for:", feature.geometry);
-                        const year1 = App.changeYears?.year1 || 2017;
-                        const year2 = App.changeYears?.year2 || 2024;
-                        const threshold = 0.7;
-
-                        if (typeof EarthEngineManager === 'undefined' || typeof EarthEngineManager.calculateChangeArea !== 'function') {
-                            throw new Error("EarthEngineManager.calculateChangeArea function is missing.");
-                        }
-
-                        // Show "Calculating..." feedback
-                        const originalTitle = document.title;
-                        document.title = "⏳ Calculating...";
-
-                        const areaKm2 = await EarthEngineManager.calculateChangeArea(feature.geometry, year1, year2, threshold);
-
-                        // Show Result
-                        alert(`📉 CHANGE ANALYSIS:\n\nArea of significant change: ${areaKm2} km²\n(Between ${year1} and ${year2})`);
-
-                    } catch (error) {
-                        console.error("Calculation failed:", error);
-                        alert("Error: " + error.message);
-                    } finally {
-                        document.title = "AlphaEarth Satellite Embeddings Viewer";
-                    }
-                };
-
-                // Get the underlying Terra Draw instance to listen for events
-                // We need to wait for the control to be added
-                setTimeout(() => {
-                    const terraDraw = drawControl.getTerraDrawInstance();
-                    if (terraDraw) {
-                        // Listen for 'finish' (when a shape is completed)
-                        terraDraw.on('finish', (id, context) => {
-                            if (context.action === 'draw') {
-                                const snapshot = terraDraw.getSnapshot();
-                                const feature = snapshot.find(f => f.id === id);
-                                if (feature) {
-                                    console.log("Shape finished:", feature);
-                                    updateArea(feature);
-                                }
-                            }
-                        });
-                        console.log('Terra Draw event listener attached');
-                    } else {
-                        console.error('Could not get Terra Draw instance');
-                    }
-                }, 1000);
-
-            } catch (err) {
-                console.error("CRITICAL TERRA DRAW ERROR:", err);
+            // Check if we're in change detection mode
+            if (App.currentMode !== 'change') {
+                showMeasureError('Please switch to Change Detection mode to measure area changes.');
+                return;
             }
-        } else {
-            console.error("Terra Draw library not loaded!");
+
+            // Show loading indicator
+            showMeasureLoading();
+
+            // Get year settings
+            const year1 = App.changeYears?.year1 || 2017;
+            const year2 = App.changeYears?.year2 || 2024;
+            const threshold = 0.7;
+
+            // Call Earth Engine calculation
+            if (typeof EarthEngineManager !== 'undefined' && EarthEngineManager.calculateChangeArea) {
+                EarthEngineManager.calculateChangeArea(polygon.geometry, year1, year2, threshold)
+                    .then(result => {
+                        hideMeasureLoading();
+                        showMeasureResult(result, year1, year2);
+                    })
+                    .catch(error => {
+                        hideMeasureLoading();
+                        console.error('Area calculation failed:', error);
+                        showMeasureError('Unable to calculate area. Please try again.');
+                    });
+            } else {
+                hideMeasureLoading();
+                showMeasureError('Earth Engine Manager not loaded.');
+            }
         }
 
-        // Set up globe atmosphere on load
+        // UI Helpers for measure results
+        function showMeasureLoading() {
+            const overlay = document.createElement('div');
+            overlay.id = 'measure-loading';
+            overlay.className = 'measure-modal-overlay';
+            overlay.innerHTML = `
+                <div class="measure-result-modal">
+                    <h3>Calculating...</h3>
+                    <p>Analyzing land cover change with Earth Engine</p>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        function hideMeasureLoading() {
+            const loading = document.getElementById('measure-loading');
+            if (loading) loading.remove();
+        }
+
+        function showMeasureResult(areaKm2, year1, year2) {
+            const overlay = document.createElement('div');
+            overlay.className = 'measure-modal-overlay';
+            overlay.onclick = () => overlay.remove();
+
+            const modal = document.createElement('div');
+            modal.className = 'measure-result-modal';
+            modal.innerHTML = `
+                <h3>Area of Significant Change</h3>
+                <p>${year1} → ${year2}</p>
+                <div class="result-value">${areaKm2.toFixed(2)}</div>
+                <div class="result-unit">km²</div>
+                <p style="color: #666; font-size: 12px; margin-top: 16px;">
+                    Areas where embedding similarity &lt; 0.7
+                </p>
+                <button onclick="this.closest('.measure-modal-overlay').remove()">
+                    Close
+                </button>
+            `;
+            modal.onclick = (e) => e.stopPropagation();
+
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+        }
+
+        function showMeasureError(message) {
+            const overlay = document.createElement('div');
+            overlay.className = 'measure-modal-overlay';
+            overlay.onclick = () => overlay.remove();
+
+            const modal = document.createElement('div');
+            modal.className = 'measure-result-modal';
+            modal.innerHTML = `
+                <h3>⚠️ Unable to Measure</h3>
+                <p>${message}</p>
+                <button onclick="this.closest('.measure-modal-overlay').remove()">
+                    OK
+                </button>
+            `;
+            modal.onclick = (e) => e.stopPropagation();
+
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+        }
+
         this.map.on('load', () => {
             console.log('Map loaded');
 
@@ -206,6 +232,14 @@ const App = {
                 'horizon-blend': 0.03,
                 'space-color': 'rgb(5, 5, 15)',
                 'star-intensity': 0.6
+            });
+
+            // Initialize drawing tool using DrawManager (Must happen after style is fully idle)
+            this.map.once('idle', () => {
+                const drawInitialized = DrawManager.init(this.map, handlePolygonComplete);
+                if (drawInitialized) {
+                    this.map.addControl(new MeasureAreaControl(), 'top-left');
+                }
             });
         });
 
@@ -646,5 +680,5 @@ document.addEventListener('DOMContentLoaded', () => {
 window.App = App;
 // Also expose map directly for chatbot integration
 Object.defineProperty(window, 'map', {
-    get: function() { return App.map; }
+    get: function () { return App.map; }
 });
